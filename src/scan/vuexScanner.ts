@@ -1,0 +1,94 @@
+import { VuexModuleRecord } from '../types/projectIndex';
+import { readMatchingFiles } from './readFiles';
+
+const STATE_KEY_RE = /^\s{2,}([a-zA-Z_$][a-zA-Z0-9_$]*)(?:\s*:\s*|\s*=)/gm;
+const GETTER_RE = /^\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\([^)]*state/gm;
+const MUTATION_RE = /^\s+([A-Z_][A-Z0-9_]*)\s*\(|mutations\s*[=:]\s*\{[^}]*\b([a-zA-Z_$][a-zA-Z0-9_$]*)\b\s*\(/gm;
+const ACTION_RE = /^\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(\s*\{?\s*(?:context|commit|dispatch|state|getters)/gm;
+const NAMESPACED_RE = /namespaced\s*:\s*true/;
+const MODULE_NAME_FROM_PATH_RE = /(?:store[\\/]modules[\\/]|modules[\\/])([a-zA-Z0-9_-]+)\./;
+
+/**
+ * Extract Vuex module records from store files.
+ * Supports both Vuex.Store({}) and modular namespace patterns.
+ */
+export async function scanVuex(unresolved: string[]): Promise<VuexModuleRecord[]> {
+  const files = await readMatchingFiles(
+    '{src/store/**/*.{js,ts},store/**/*.{js,ts}}',
+    unresolved
+  );
+
+  const modules: VuexModuleRecord[] = [];
+
+  for (const [filePath, content] of files) {
+    const module = extractModule(filePath, content);
+    if (module) modules.push(module);
+  }
+
+  return modules;
+}
+
+function extractModule(filePath: string, content: string): VuexModuleRecord | null {
+  // Skip index files that only import/register modules
+  const isIndexFile = /index\.(js|ts)$/.test(filePath);
+  const hasModules = /modules\s*:\s*\{/.test(content);
+  if (isIndexFile && hasModules && !content.includes('state:') && !content.includes('mutations:')) {
+    return null;
+  }
+
+  const nameMatch = MODULE_NAME_FROM_PATH_RE.exec(filePath);
+  const name = nameMatch ? nameMatch[1] : deriveNameFromPath(filePath);
+  const namespaced = NAMESPACED_RE.test(content);
+
+  const stateKeys = extractStateKeys(content);
+  const getters = extractIdentifiers(content, GETTER_RE, 1);
+  const mutations = extractMutationNames(content);
+  const actions = extractIdentifiers(content, ACTION_RE, 1);
+
+  return { name, namespaced, stateKeys, getters, mutations, actions, filePath };
+}
+
+function deriveNameFromPath(filePath: string): string {
+  const parts = filePath.replace(/\\/g, '/').split('/');
+  const file = parts[parts.length - 1];
+  return file.replace(/\.(js|ts)$/, '');
+}
+
+function extractStateKeys(content: string): string[] {
+  // Find the state object/function body
+  const stateMatch = /state\s*(?::|=)\s*(?:\(\s*\)\s*=>?\s*)?\{([^}]+)\}/s.exec(content);
+  if (!stateMatch) return [];
+
+  const stateBody = stateMatch[1];
+  const keys: string[] = [];
+  let match: RegExpExecArray | null;
+  const re = /^\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/gm;
+  while ((match = re.exec(stateBody)) !== null) {
+    keys.push(match[1]);
+  }
+  return keys;
+}
+
+function extractIdentifiers(content: string, re: RegExp, group: number): string[] {
+  const names: string[] = [];
+  const cloned = new RegExp(re.source, re.flags);
+  let match: RegExpExecArray | null;
+  while ((match = cloned.exec(content)) !== null) {
+    if (match[group]) names.push(match[group]);
+  }
+  return [...new Set(names)];
+}
+
+function extractMutationNames(content: string): string[] {
+  const mutationsBlockMatch = /mutations\s*:\s*\{([^}]+)\}/s.exec(content);
+  if (!mutationsBlockMatch) return [];
+
+  const body = mutationsBlockMatch[1];
+  const names: string[] = [];
+  const re = /^\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(/gm;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(body)) !== null) {
+    names.push(match[1]);
+  }
+  return [...new Set(names)];
+}

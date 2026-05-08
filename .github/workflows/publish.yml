@@ -1,0 +1,63 @@
+name: Build and Release VSIX
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+
+      - name: Compile extension
+        run: npm run compile
+
+      - name: Package VSIX
+        run: npx vsce package --no-dependencies
+        # Outputs: vue-docs-agent-<version>.vsix
+
+      - name: Upload VSIX to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: '*.vsix'
+          body: |
+            ## Installation
+
+            ### Option A — VS Code terminal
+            ```bash
+            code --install-extension vue-docs-agent-${{ github.ref_name }}.vsix
+            ```
+
+            ### Option B — VS Code UI
+            Extensions panel → ⋯ menu → "Install from VSIX..."
+
+            ## Usage
+            Open any Vue 2 project in VS Code, then in Copilot Chat:
+            - `@vue-docs /generate` — generate all docs
+            - `@vue-docs /update` — update changed docs
+            - `@vue-docs /audit` — find gaps
+            - `@vue-docs /endpoint` — document API endpoints only
+            - `@vue-docs /auth` — document authentication only
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

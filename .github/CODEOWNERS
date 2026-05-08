@@ -1,0 +1,9 @@
+# Prompt and instruction owners — the doc team reviews all prompt changes
+/src/model/prompts/   @your-org/doc-team
+/instructions/        @your-org/doc-team
+
+# Scan layer — requires review from dev team to avoid breaking extraction
+/src/scan/            @your-org/dev-team
+
+# Release gating
+/package.json         @your-org/doc-team @your-org/dev-team
