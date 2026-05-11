@@ -82,7 +82,39 @@ code --install-extension vue-docs-agent-<version>.vsix
 
 Reload VS Code, open a Vue 2 project, and run the same `@vue-docs` commands.
 
-## 3) GitHub Test Workflow
+## 3) Install from GitHub Releases (For Team Members)
+
+Team members can test and use the extension without cloning the repository.
+
+### Prerequisites
+
+- VS Code 1.90.0 or later
+- GitHub Copilot extension enabled and signed in
+
+### Installation Steps
+
+1. Go to the [Releases page](https://github.com/CalvinVectorCT/vue2_documentation_agent/releases)
+2. Download the latest `vue-docs-agent-*.vsix` file
+3. In VS Code, open the Extensions view (**Ctrl+Shift+X**)
+4. Click the **...** menu and select **Install from VSIX...**
+5. Select the downloaded `.vsix` file
+6. VS Code will install and reload
+
+### Using the Extension
+
+1. Open your Vue 2 project in VS Code
+2. Open the Copilot Chat sidebar (**Ctrl+Shift+I**)
+3. Use the `@vue-docs` chat participant with these commands:
+
+```text
+@vue-docs /generate    # Scan and generate full docs/ folder
+@vue-docs /update      # Re-scan and update existing documentation
+@vue-docs /audit       # Check docs against codebase and report issues
+@vue-docs /endpoint    # Extract and document only API endpoints
+@vue-docs /auth        # Document authentication flow and route guards
+```
+
+## 4) GitHub Test Workflow
 
 Use this flow to validate remote CI and release packaging.
 
@@ -98,23 +130,27 @@ Use this flow to validate remote CI and release packaging.
 If CI fails at setup:
 
 - Ensure `package-lock.json` is committed.
-- Ensure dependency versions are compatible.
 
-### Release Validation on Tag
+### Automated VSIX Release
 
-1. Update `package.json` version and `CHANGELOG.md`.
-2. Push a release tag:
+When you push a tag matching `v*` pattern, the release workflow automatically:
+
+1. Builds the extension
+2. Packages it as a VSIX
+3. Creates a GitHub Release with the VSIX attached
+
+**To trigger a release:**
 
 ```bash
-git tag vX.Y.Z
-git push origin vX.Y.Z
+git tag v1.0.0
+git push origin v1.0.0
 ```
 
-3. Confirm publish workflow in `.github/workflows/publish.yml` succeeds.
-4. Download the VSIX from GitHub Release assets.
-5. Install the VSIX and run a smoke test with `@vue-docs /generate` on a Vue 2 project.
+The VSIX will appear on the [Releases page](https://github.com/CalvinVectorCT/vue2_documentation_agent/releases) within minutes.
 
-## 4) Common Problems and Fixes
+- Ensure dependency versions are compatible.
+
+## Troubleshooting
 
 - Error: `No activated agent with id "vue-docs-agent.docs"`
   - Ensure `activationEvents` contains `onChatParticipant:vue-docs-agent.docs`.
