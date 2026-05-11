@@ -1,8 +1,6 @@
 import { RouteRecord } from '../types/projectIndex';
 import { readMatchingFiles } from './readFiles';
 
-// Matches: { path: '/some/path', ... }
-const PATH_RE = /path\s*:\s*['"`]([^'"`]+)['"`]/g;
 // Matches: name: 'RouteName'
 const NAME_RE = /name\s*:\s*['"`]([^'"`]+)['"`]/;
 // Matches: component: SomeComponent  or  component: () => import(...)

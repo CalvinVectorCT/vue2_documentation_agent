@@ -32,9 +32,10 @@ Expected result:
 ### Run in Extension Development Host
 
 1. Open this extension repo in VS Code.
-2. Press `F5` to launch Extension Development Host.
-3. In the new window, open your Vue 2 workspace root.
-4. Open Copilot Chat and run:
+2. Open Run and Debug and select `Run Extension`.
+3. Press `F5` (or click Start Debugging) to launch Extension Development Host.
+4. In the new window, open your Vue 2 workspace root.
+5. Open Copilot Chat and run:
 
 ```text
 @vue-docs /generate

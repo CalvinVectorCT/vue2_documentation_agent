@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { ProjectIndex } from '../types/projectIndex';
 import { callModel } from '../model/modelClient';
 import { SYSTEM_PROMPT, UPDATE_PROMPT } from '../model/prompts/index';
@@ -15,7 +14,6 @@ import { buildDocsIndex } from '../docs/render/docsIndex';
 import { readExistingDocs } from '../docs/diff/readExistingDocs';
 import { addChangelogHeader } from '../docs/diff/changelogHeader';
 import { writeAllDocs } from '../docs/write/writeDocs';
-import { safeRead } from '../docs/write/safeWrite';
 
 const DOC_SPECS = [
   { relativePath: 'docs/navigation.md', label: 'Navigation', contextBuilder: buildNavigationContext },

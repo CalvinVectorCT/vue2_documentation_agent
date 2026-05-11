@@ -69,6 +69,8 @@ VS Code settings (`.vscode/settings.json` or user settings):
 
 For release, rollout, and operating guidance across teams, see [instructions/deployment-runbook.md](instructions/deployment-runbook.md).
 
+For local and GitHub testing workflows, see [instructions/testing-local-and-github.md](instructions/testing-local-and-github.md).
+
 ## Development
 
 ```bash

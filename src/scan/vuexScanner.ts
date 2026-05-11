@@ -1,9 +1,7 @@
 import { VuexModuleRecord } from '../types/projectIndex';
 import { readMatchingFiles } from './readFiles';
 
-const STATE_KEY_RE = /^\s{2,}([a-zA-Z_$][a-zA-Z0-9_$]*)(?:\s*:\s*|\s*=)/gm;
 const GETTER_RE = /^\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\([^)]*state/gm;
-const MUTATION_RE = /^\s+([A-Z_][A-Z0-9_]*)\s*\(|mutations\s*[=:]\s*\{[^}]*\b([a-zA-Z_$][a-zA-Z0-9_$]*)\b\s*\(/gm;
 const ACTION_RE = /^\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(\s*\{?\s*(?:context|commit|dispatch|state|getters)/gm;
 const NAMESPACED_RE = /namespaced\s*:\s*true/;
 const MODULE_NAME_FROM_PATH_RE = /(?:store[\\/]modules[\\/]|modules[\\/])([a-zA-Z0-9_-]+)\./;

@@ -5,7 +5,6 @@ import { readMatchingFiles } from './readFiles';
 const AXIOS_CALL_RE = /(?:axios|api|http|client|service|request)\.(get|post|put|patch|delete|head)\s*\(\s*['"`]([^'"`]+)['"`]/gi;
 const TEMPLATE_LITERAL_RE = /(?:axios|api|http|client|service|request)\.(get|post|put|patch|delete|head)\s*\(\s*`([^`]+)`/gi;
 const FETCH_RE = /fetch\s*\(\s*['"`]([^'"`]+)['"`]\s*(?:,\s*\{[^}]*method\s*:\s*['"`](GET|POST|PUT|PATCH|DELETE)['"`])?/gi;
-const API_STRING_RE = /['"`](\/api\/[^'"`\s]+)['"`]/g;
 const FUNCTION_CONTEXT_RE = /(?:async\s+)?(?:function\s+|(?:const|let|var)\s+)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?:=\s*(?:async\s+)?(?:\([^)]*\)\s*=>|\bfunction\b))?/;
 
 const HTTP_METHODS: Record<string, HttpMethod> = {
