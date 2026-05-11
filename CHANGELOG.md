@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.2] — 2026-05-11
+
+### Fixed
+- GitHub Release notes now clearly instruct users to download and install the `.vsix` asset
+- Clarified that source code zip/tarball is not the install package
+
 ## [1.0.1] — 2026-05-11
 
 ### Added

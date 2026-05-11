@@ -142,8 +142,8 @@ When you push a tag matching `v*` pattern, the release workflow automatically:
 **To trigger a release:**
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git tag vX.Y.Z
+git push origin vX.Y.Z
 ```
 
 The VSIX will appear on the [Releases page](https://github.com/CalvinVectorCT/vue2_documentation_agent/releases) within minutes.
