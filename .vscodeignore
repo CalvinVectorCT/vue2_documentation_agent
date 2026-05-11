@@ -1,4 +1,9 @@
 node_modules
-out
 *.vsix
 .vscode-test
+src
+instructions
+esbuild.js
+jest.config.json
+tsconfig.json
+.eslintrc.cjs
