@@ -2,7 +2,7 @@
   "name": "vue-docs-agent",
   "displayName": "Vue 2 Docs Agent",
   "description": "Generates and maintains structured documentation for Vue 2 projects",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "CalvinVectorCT",
   "license": "MIT",
   "engines": {

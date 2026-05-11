@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.1] — 2026-05-11
+
+### Added
+- Automated VSIX release workflow on git tag push
+- Team installation guide for GitHub Releases
+
+### Fixed
+- Package configuration for correct VSIX bundling
+- Publisher name and repository URL
+
 ## [1.0.0] — 2026-05-08
 
 ### Added
