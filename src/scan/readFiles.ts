@@ -15,10 +15,13 @@ export async function readWorkspaceFile(uri: vscode.Uri): Promise<string | null>
 
 /**
  * Find files matching a glob pattern relative to the workspace root.
- * Excludes node_modules, dist, and coverage directories automatically.
+ * Excludes node_modules, dist, coverage, storybook outputs, and story files automatically.
  */
 export async function findFiles(pattern: string): Promise<vscode.Uri[]> {
-  return vscode.workspace.findFiles(pattern, '{node_modules,dist,coverage,out,.git}/**');
+  return vscode.workspace.findFiles(
+    pattern,
+    '{node_modules,dist,coverage,out,.git,storybook-static,.storybook}/**'
+  );
 }
 
 /**

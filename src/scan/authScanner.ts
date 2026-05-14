@@ -49,17 +49,20 @@ const PATTERNS: Array<{
 ];
 
 /**
- * Scan router, plugin, service, and store files for authentication-related patterns.
+ * Scan all JS/TS and Vue files for authentication-related patterns.
+ * Uses broad globs so non-standard folder layouts are covered.
  */
 export async function scanAuth(unresolved: string[]): Promise<AuthRecord[]> {
-  const files = await readMatchingFiles(
-    '{src/router/**/*.{js,ts},src/plugins/**/*.{js,ts},src/services/**/*.{js,ts},src/auth/**/*.{js,ts},src/store/**/*.{js,ts},src/utils/**/*.{js,ts}}',
-    unresolved
-  );
+  const [jsFiles, vueFiles] = await Promise.all([
+    readMatchingFiles('src/**/*.{js,ts}', unresolved),
+    readMatchingFiles('src/**/*.vue', unresolved),
+  ]);
 
   const records: AuthRecord[] = [];
 
-  for (const [filePath, content] of files) {
+  for (const [filePath, content] of [...jsFiles, ...vueFiles]) {
+    // Skip storybook story files
+    if (/\.stories\./i.test(filePath.replace(/\\/g, '/'))) continue;
     const lines = content.split('\n');
 
     for (let i = 0; i < lines.length; i++) {

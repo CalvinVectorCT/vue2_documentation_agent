@@ -10,15 +10,30 @@ const COMPONENTS_BLOCK_RE = /components\s*:\s*\{([^}]+)\}/s;
 
 /**
  * Scan .vue files and extract component metadata.
+ * Uses a broad glob to handle non-standard folder structures where components
+ * may live outside the canonical src/components/ and src/views/ directories.
  */
 export async function scanComponents(unresolved: string[]): Promise<{
   components: ComponentRecord[];
   views: ComponentRecord[];
 }> {
-  const [componentFiles, viewFiles] = await Promise.all([
-    readMatchingFiles('src/components/**/*.vue', unresolved),
-    readMatchingFiles('src/views/**/*.vue', unresolved),
-  ]);
+  const allFiles = await readMatchingFiles('src/**/*.vue', unresolved);
+
+  // Classify by path: anything under a "views" folder or a top-level page component is a view
+  const componentFiles = new Map<string, string>();
+  const viewFiles = new Map<string, string>();
+
+  for (const [filePath, content] of allFiles) {
+    const normalised = filePath.replace(/\\/g, '/');
+    // Skip storybook story files
+    if (/\.stories\./i.test(normalised)) continue;
+
+    if (/\/views?\//i.test(normalised)) {
+      viewFiles.set(filePath, content);
+    } else {
+      componentFiles.set(filePath, content);
+    }
+  }
 
   const components = parseComponentFiles(componentFiles, false);
   const views = parseComponentFiles(viewFiles, true);

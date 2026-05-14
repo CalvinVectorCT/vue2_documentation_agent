@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.7] — 2026-05-14
+
+### Fixed
+- Broadened scanner glob patterns to detect routes, components, API endpoints, auth, and Vuex in non-standard Vue 2 folder layouts (components outside `src/components/`, router as `src/router.js`, API calls in custom sub-folders)
+- Added storybook file/directory exclusion (`*.stories.*`, `storybook-static/`, `.storybook/`) across all scanners to prevent story files from polluting scan results
+- Added Vuex detection guard so non-store JS files are skipped when scanning broadly
+
 ## [1.0.6] — 2026-05-14
 
 ### Fixed

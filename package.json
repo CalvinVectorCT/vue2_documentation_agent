@@ -2,13 +2,16 @@
   "name": "vue-docs-agent",
   "displayName": "Vue 2 Docs Agent",
   "description": "Generates and maintains structured documentation for Vue 2 projects",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "publisher": "CalvinVectorCT",
   "license": "MIT",
   "engines": {
     "vscode": "^1.90.0"
   },
-  "categories": ["AI", "Other"],
+  "categories": [
+    "AI",
+    "Other"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/CalvinVectorCT/vue2_documentation_agent.git"
@@ -55,7 +58,17 @@
       "properties": {
         "vueDocs.scanRoots": {
           "type": "array",
-          "default": ["src", "router", "store", "services", "views", "components", "plugins", "utils", "api"],
+          "default": [
+            "src",
+            "router",
+            "store",
+            "services",
+            "views",
+            "components",
+            "plugins",
+            "utils",
+            "api"
+          ],
           "description": "Directories to scan for Vue 2 source files"
         },
         "vueDocs.docsDir": {

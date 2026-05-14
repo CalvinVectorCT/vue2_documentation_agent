@@ -9,10 +9,11 @@ const MODULE_NAME_FROM_PATH_RE = /(?:store[\\/]modules[\\/]|modules[\\/])([a-zA-
 /**
  * Extract Vuex module records from store files.
  * Supports both Vuex.Store({}) and modular namespace patterns.
+ * Uses broad globs to handle non-standard folder layouts.
  */
 export async function scanVuex(unresolved: string[]): Promise<VuexModuleRecord[]> {
   const files = await readMatchingFiles(
-    '{src/store/**/*.{js,ts},store/**/*.{js,ts}}',
+    '{src/**/*.{js,ts},store/**/*.{js,ts}}',
     unresolved
   );
 
@@ -27,6 +28,15 @@ export async function scanVuex(unresolved: string[]): Promise<VuexModuleRecord[]
 }
 
 function extractModule(filePath: string, content: string): VuexModuleRecord | null {
+  // Skip storybook story files
+  if (/\.stories\./i.test(filePath.replace(/\\/g, '/'))) return null;
+
+  // Only process files that look like Vuex modules or stores
+  const looksLikeVuex =
+    /\bVuex\b/.test(content) ||
+    (/\bstate\s*[:(]/.test(content) && /\b(mutations|actions|getters)\s*:/.test(content));
+  if (!looksLikeVuex) return null;
+
   // Skip index files that only import/register modules
   const isIndexFile = /index\.(js|ts)$/.test(filePath);
   const hasModules = /modules\s*:\s*\{/.test(content);

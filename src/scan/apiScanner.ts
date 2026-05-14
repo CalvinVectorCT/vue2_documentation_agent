@@ -43,15 +43,18 @@ function inferGroup(path: string): string {
  * Scan service, API, and component files for HTTP endpoint calls.
  */
 export async function scanApiEndpoints(unresolved: string[]): Promise<ApiEndpointRecord[]> {
-  const files = await readMatchingFiles(
-    '{src/services/**/*.{js,ts},src/api/**/*.{js,ts},src/utils/**/*.{js,ts},src/plugins/**/*.{js,ts},src/views/**/*.vue,src/components/**/*.vue}',
-    unresolved
-  );
+  // Broad scan: cover any folder layout — services/, api/, utils/, plugins/, and all .vue files
+  const [jsFiles, vueFiles] = await Promise.all([
+    readMatchingFiles('src/**/*.{js,ts}', unresolved),
+    readMatchingFiles('src/**/*.vue', unresolved),
+  ]);
 
   const endpoints: ApiEndpointRecord[] = [];
   const seen = new Set<string>();
 
-  for (const [filePath, content] of files) {
+  for (const [filePath, content] of [...jsFiles, ...vueFiles]) {
+    // Skip storybook story files
+    if (/\.stories\./i.test(filePath.replace(/\\/g, '/'))) continue;
     extractEndpoints(content, filePath, endpoints, seen);
   }
 
