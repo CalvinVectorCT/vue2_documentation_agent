@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.9] — 2026-05-14
+
+### Fixed
+- Widened scanner detection coverage for non-standard Vue 2 project structures to reduce "not detected" outputs across routes, stores, components, and endpoints
+
+### Changed
+- Merged scanner reliability updates from `fix/scanner-not-detected`
+
 ## [1.0.8] — 2026-05-14
 
 ### Fixed
