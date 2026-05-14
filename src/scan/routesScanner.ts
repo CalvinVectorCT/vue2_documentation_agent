@@ -44,6 +44,51 @@ export async function scanRoutes(unresolved: string[]): Promise<RouteRecord[]> {
   return routes;
 }
 
+/**
+ * Look backward from the `path:` line to find the opening `{` of the route object.
+ * Returns the line index of the opening brace, or falls back to `pathLineIndex - 3`.
+ */
+function findRouteObjectStart(lines: string[], pathLineIndex: number): number {
+  let depth = 0;
+  for (let j = pathLineIndex - 1; j >= 0; j--) {
+    const line = lines[j];
+    for (let k = line.length - 1; k >= 0; k--) {
+      if (line[k] === '}') depth++;
+      else if (line[k] === '{') {
+        if (depth === 0) {
+          return j;
+        }
+        depth--;
+      }
+    }
+  }
+  // Fallback: use a small lookback
+  return Math.max(0, pathLineIndex - 3);
+}
+
+/**
+ * From the route object opening brace line, scan forward counting `{` and `}`
+ * until the route object is fully closed (depth returns to 0).
+ * Returns the line index of the closing brace.
+ */
+function findRouteObjectEnd(lines: string[], openBraceLine: number): number {
+  let depth = 0;
+  for (let j = openBraceLine; j < lines.length; j++) {
+    const line = lines[j];
+    for (let k = 0; k < line.length; k++) {
+      if (line[k] === '{') depth++;
+      else if (line[k] === '}') {
+        depth--;
+        if (depth === 0) {
+          return j;
+        }
+      }
+    }
+  }
+  // Fallback: return last line
+  return lines.length - 1;
+}
+
 function extractRoutesFromContent(content: string, filePath: string, out: RouteRecord[]): void {
   const lines = content.split('\n');
 
@@ -53,9 +98,16 @@ function extractRoutesFromContent(content: string, filePath: string, out: RouteR
     const pathMatch = /path\s*:\s*['"`]([^'"`]+)['"`]/.exec(line);
 
     if (pathMatch) {
-      // Collect a small window of lines around this path declaration (plus room for comments)
-      const start = Math.max(0, i - 3);
-      const end = Math.min(lines.length - 1, i + 14);
+      // Look backward from `path:` line to find the opening `{` of the route object
+      const objectStart = findRouteObjectStart(lines, i);
+      // Scan forward from the opening brace to find the closing `}` using brace-depth tracking
+      const objectEnd = findRouteObjectEnd(lines, objectStart);
+
+      // Enforce a minimum window of 14 lines forward from path for backward compatibility
+      const minEnd = Math.min(lines.length - 1, i + 14);
+      const start = objectStart;
+      const end = Math.max(minEnd, objectEnd);
+
       const block = lines.slice(start, end + 1).join('\n');
 
       const nameMatch = NAME_RE.exec(block);

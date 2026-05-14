@@ -5,7 +5,7 @@ You will receive structured project data extracted from source files. Use only t
 
 Mandatory rules:
 - Document only what exists in project data. Do not invent endpoints, routes, components, modules, or flows.
-- If details are missing, write a concrete statement such as "Not detected in scanned project data" and continue documenting available facts.
+- If details are missing, write a \`> ⚠️ TODO:\` callout explaining what information needs to be filled in manually and continue documenting available facts.
 - Open each major technical section with a plain-English summary paragraph before tables or diagrams.
 - Keep names exact: route paths, component names, Vuex module names, and endpoint paths.
 - Use Mermaid in fenced code blocks for diagram files.

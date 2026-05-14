@@ -6,7 +6,7 @@ const PLUGIN_CLASS_RE = /class\s+([A-Za-z_$][A-Za-z0-9_$]*Plugin)/g;
 
 export async function scanPlugins(unresolved: string[]): Promise<PluginRecord[]> {
   const files = await readMatchingFiles(
-    '{src/plugins/**/*.{js,ts},src/main.{js,ts}}',
+    'src/**/*.{js,ts}',
     unresolved
   );
 

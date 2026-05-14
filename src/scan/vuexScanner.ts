@@ -30,9 +30,51 @@ export async function scanVuex(unresolved: string[]): Promise<VuexModuleRecord[]
   return modules;
 }
 
+/**
+ * Check if a file is a store utility file that exports shared Vuex helpers.
+ * Returns true if the file path contains `/store/` (or `\store\`) and the
+ * content has `export` + function definitions.
+ */
+function isStoreUtilityFile(filePath: string, content: string): boolean {
+  const normalizedPath = filePath.replace(/\\/g, '/');
+  if (!normalizedPath.includes('/store/')) return false;
+  return /export\s+(function|const)\s+/.test(content);
+}
+
+/**
+ * Extract exported function names from a store utility file.
+ * Matches patterns like `export function fetchUsers(...)` and `export const fetchUsers = ...`
+ */
+function extractExportedFunctionNames(content: string): string[] {
+  const names: string[] = [];
+  const re = /export\s+(?:function|const)\s+([a-zA-Z_$][a-zA-Z0-9_$]*)/g;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(content)) !== null) {
+    names.push(match[1]);
+  }
+  return [...new Set(names)];
+}
+
 function extractModule(filePath: string, content: string): VuexModuleRecord | null {
   // Skip storybook story files
   if (/\.stories\./i.test(filePath.replace(/\\/g, '/'))) return null;
+
+  // Check if this is a store utility file with exported helpers
+  if (isStoreUtilityFile(filePath, content)) {
+    const exportedNames = extractExportedFunctionNames(content);
+    if (exportedNames.length > 0) {
+      const name = deriveNameFromPath(filePath);
+      return {
+        name,
+        namespaced: false,
+        stateKeys: [],
+        getters: [],
+        mutations: [],
+        actions: exportedNames,
+        filePath,
+      };
+    }
+  }
 
   // Only process files that look like Vuex modules or stores
   const looksLikeVuex =
@@ -90,12 +132,42 @@ function extractIdentifiers(content: string, re: RegExp, group: number): string[
   return [...new Set(names)];
 }
 
-function extractObjectKeys(content: string, objectName: 'actions' | 'getters' | 'mutations'): string[] {
-  const blockRe = new RegExp(`${objectName}\\s*:\\s*\\{([\\s\\S]*?)\\}`, 'm');
-  const blockMatch = blockRe.exec(content);
-  if (!blockMatch) return [];
+/**
+ * Find the index of the matching closing brace for an opening brace at `startIndex`.
+ * Uses brace-depth counting to correctly handle nested objects.
+ * Returns -1 if no matching brace is found.
+ */
+function findMatchingBrace(content: string, startIndex: number): number {
+  let depth = 0;
+  for (let i = startIndex; i < content.length; i++) {
+    if (content[i] === '{') {
+      depth++;
+    } else if (content[i] === '}') {
+      depth--;
+      if (depth === 0) {
+        return i;
+      }
+    }
+  }
+  return -1;
+}
 
-  const body = blockMatch[1];
+function extractObjectKeys(content: string, objectName: 'actions' | 'getters' | 'mutations'): string[] {
+  // Find the start of the object block: `objectName: {`
+  const startRe = new RegExp(`${objectName}\\s*:\\s*\\{`);
+  const startMatch = startRe.exec(content);
+  if (!startMatch) return [];
+
+  // Find the opening brace position
+  const openBraceIndex = startMatch.index + startMatch[0].length - 1;
+
+  // Use brace-depth counting to find the matching closing brace
+  const closeBraceIndex = findMatchingBrace(content, openBraceIndex);
+  if (closeBraceIndex === -1) return [];
+
+  // Extract the body between the braces (excluding the braces themselves)
+  const body = content.slice(openBraceIndex + 1, closeBraceIndex);
+
   const methodStyle = extractIdentifiers(body, /^\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(/gm, 1);
   const keyValueStyle = extractIdentifiers(body, /^\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*/gm, 1);
 

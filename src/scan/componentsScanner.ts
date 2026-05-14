@@ -7,6 +7,7 @@ const PROPS_ARRAY_RE = /props\s*:\s*\[([^\]]+)\]/;
 const EMIT_RE = /\$emit\s*\(\s*['"`]([^'"`]+)['"`]/g;
 const IMPORT_COMPONENT_RE = /import\s+([A-Z][a-zA-Z0-9]*)\s+from\s+['"`][^'"`]+['"`]/g;
 const COMPONENTS_BLOCK_RE = /components\s*:\s*\{([^}]+)\}/s;
+const VUE_COMPONENT_RE = /Vue\.component\s*\(\s*['"`]([^'"`]+)['"`]/g;
 
 /**
  * Scan .vue files and extract component metadata.
@@ -37,6 +38,35 @@ export async function scanComponents(unresolved: string[]): Promise<{
 
   const components = parseComponentFiles(componentFiles, false);
   const views = parseComponentFiles(viewFiles, true);
+
+  // Second pass: scan JS/TS files for global Vue.component() registrations
+  const jsFiles = await readMatchingFiles('src/**/*.{js,ts}', unresolved);
+  for (const [filePath, content] of jsFiles) {
+    const normalised = filePath.replace(/\\/g, '/');
+    // Skip storybook story files
+    if (/\.stories\./i.test(normalised)) continue;
+
+    const re = new RegExp(VUE_COMPONENT_RE.source, 'g');
+    let match: RegExpExecArray | null;
+    while ((match = re.exec(content)) !== null) {
+      const name = match[1];
+      // Avoid duplicates with already-detected components
+      const alreadyExists = components.some((c) => c.name === name) || views.some((v) => v.name === name);
+      if (!alreadyExists) {
+        components.push({
+          name,
+          filePath,
+          props: [],
+          emits: [],
+          importedComponents: [],
+          isView: false,
+        });
+      }
+    }
+  }
+
+  // Re-sort after adding global registrations
+  components.sort((a, b) => a.name.localeCompare(b.name));
 
   return { components, views };
 }
