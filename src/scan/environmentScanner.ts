@@ -12,7 +12,7 @@ export async function scanEnvironment(unresolved: string[]): Promise<Environment
   const records: EnvironmentRecord[] = [];
   const seen = new Set<string>();
 
-  const envFiles = await readMatchingFiles('{.env,.env.*,src/**/*.env,src/**/*.env.*}', unresolved);
+  const envFiles = await readMatchingFiles('**/.env*', unresolved);
   for (const [filePath, content] of envFiles) {
     const lines = content.split('\n');
     for (let i = 0; i < lines.length; i++) {
