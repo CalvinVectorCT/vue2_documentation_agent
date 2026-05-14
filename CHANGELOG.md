@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.4] — 2026-05-14
+
+### Fixed
+- Removed duplicate legacy release workflow that could fail with GitHub release 403 errors
+- Standardized tag releases on `.github/workflows/publish.yml` so the latest `.vsix` is attached consistently
+
 ## [1.0.3] — 2026-05-14
 
 ### Changed
