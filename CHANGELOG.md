@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.3] — 2026-05-14
+
+### Changed
+- Aligned documentation rules with the canonical Vue 2 Copilot instruction set
+
 ## [1.0.2] — 2026-05-11
 
 ### Fixed
