@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.5] — 2026-05-14
+
+### Fixed
+- Updated runtime model prompts to align with the new documentation instruction set
+- Added missing generation/update targets: `docs/user-actions.md`, all required Mermaid diagram docs, and root `README.md`
+- Expanded expected documentation target list and docs index to match the new specification
+
 ## [1.0.4] — 2026-05-14
 
 ### Fixed

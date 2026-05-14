@@ -1,18 +1,19 @@
 import * as vscode from 'vscode';
 import { ProjectIndex } from '../types/projectIndex';
 import { callModel } from '../model/modelClient';
-import { SYSTEM_PROMPT, UPDATE_PROMPT } from '../model/prompts/index';
+import { SYSTEM_PROMPT, buildUpdatePrompt } from '../model/prompts/index';
 import {
+  buildFullIndexContext,
   buildAuthContext,
   buildEndpointContext,
   buildNavigationContext,
   buildStateContext,
   buildComponentsContext,
   buildArchitectureContext,
+  buildUserActionsContext,
 } from '../model/promptBuilder';
 import { buildDocsIndex } from '../docs/render/docsIndex';
 import { readExistingDocs } from '../docs/diff/readExistingDocs';
-import { addChangelogHeader } from '../docs/diff/changelogHeader';
 import { writeAllDocs } from '../docs/write/writeDocs';
 
 const DOC_SPECS = [
@@ -22,6 +23,12 @@ const DOC_SPECS = [
   { relativePath: 'docs/state-management.md', label: 'State Management', contextBuilder: buildStateContext },
   { relativePath: 'docs/components.md', label: 'Components', contextBuilder: buildComponentsContext },
   { relativePath: 'docs/architecture.md', label: 'Architecture', contextBuilder: buildArchitectureContext },
+  { relativePath: 'docs/user-actions.md', label: 'User Actions', contextBuilder: buildUserActionsContext },
+  { relativePath: 'docs/diagrams/architecture-overview.md', label: 'Architecture Diagram', contextBuilder: buildArchitectureContext },
+  { relativePath: 'docs/diagrams/auth-flow.md', label: 'Auth Flow Diagram', contextBuilder: buildAuthContext },
+  { relativePath: 'docs/diagrams/navigation-map.md', label: 'Navigation Diagram', contextBuilder: buildNavigationContext },
+  { relativePath: 'docs/diagrams/state-flow.md', label: 'State Flow Diagram', contextBuilder: buildStateContext },
+  { relativePath: 'README.md', label: 'Root README', contextBuilder: buildFullIndexContext },
 ];
 
 /**
@@ -46,14 +53,13 @@ export async function runUpdate(
     try {
       const content = await callModel({
         systemPrompt: SYSTEM_PROMPT,
-        taskPrompt: UPDATE_PROMPT,
+        taskPrompt: buildUpdatePrompt(spec.relativePath),
         dataContext: spec.contextBuilder(index),
         existingContent: existing ?? undefined,
         token,
       });
 
-      const withChangelog = addChangelogHeader(content, `Updated ${spec.label} documentation`);
-      docs.set(spec.relativePath, withChangelog);
+      docs.set(spec.relativePath, content);
       stream.markdown(`✅ \`${spec.relativePath}\` updated\n\n`);
     } catch (err) {
       stream.markdown(`❌ Failed to update \`${spec.relativePath}\`: ${String(err)}\n\n`);

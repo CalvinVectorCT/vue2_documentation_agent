@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { ProjectIndex } from '../types/projectIndex';
 import { callModel } from '../model/modelClient';
-import { SYSTEM_PROMPT, ENDPOINT_PROMPT } from '../model/prompts/index';
+import { SYSTEM_PROMPT, buildGeneratePrompt } from '../model/prompts/index';
 import { buildEndpointContext } from '../model/promptBuilder';
 import { safeWrite } from '../docs/write/safeWrite';
 
@@ -17,7 +17,7 @@ export async function runEndpoint(
   try {
     content = await callModel({
       systemPrompt: SYSTEM_PROMPT,
-      taskPrompt: ENDPOINT_PROMPT,
+      taskPrompt: buildGeneratePrompt('docs/api-endpoints.md'),
       dataContext: buildEndpointContext(index),
       token,
     });

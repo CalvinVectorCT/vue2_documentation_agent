@@ -1,14 +1,16 @@
 import * as vscode from 'vscode';
 import { ProjectIndex } from '../types/projectIndex';
 import { callModel } from '../model/modelClient';
-import { SYSTEM_PROMPT, GENERATE_PROMPT } from '../model/prompts/index';
+import { SYSTEM_PROMPT, buildGeneratePrompt } from '../model/prompts/index';
 import {
+  buildFullIndexContext,
   buildAuthContext,
   buildEndpointContext,
   buildNavigationContext,
   buildStateContext,
   buildComponentsContext,
   buildArchitectureContext,
+  buildUserActionsContext,
 } from '../model/promptBuilder';
 import { buildDocsIndex } from '../docs/render/docsIndex';
 import { writeAllDocs } from '../docs/write/writeDocs';
@@ -27,6 +29,12 @@ const DOC_SPECS: DocSpec[] = [
   { relativePath: 'docs/state-management.md', label: 'State Management', contextBuilder: buildStateContext },
   { relativePath: 'docs/components.md', label: 'Components', contextBuilder: buildComponentsContext },
   { relativePath: 'docs/architecture.md', label: 'Architecture', contextBuilder: buildArchitectureContext },
+  { relativePath: 'docs/user-actions.md', label: 'User Actions', contextBuilder: buildUserActionsContext },
+  { relativePath: 'docs/diagrams/architecture-overview.md', label: 'Architecture Diagram', contextBuilder: buildArchitectureContext },
+  { relativePath: 'docs/diagrams/auth-flow.md', label: 'Auth Flow Diagram', contextBuilder: buildAuthContext },
+  { relativePath: 'docs/diagrams/navigation-map.md', label: 'Navigation Diagram', contextBuilder: buildNavigationContext },
+  { relativePath: 'docs/diagrams/state-flow.md', label: 'State Flow Diagram', contextBuilder: buildStateContext },
+  { relativePath: 'README.md', label: 'Root README', contextBuilder: buildFullIndexContext },
 ];
 
 /**
@@ -48,7 +56,7 @@ export async function runGenerate(
     try {
       const content = await callModel({
         systemPrompt: SYSTEM_PROMPT,
-        taskPrompt: GENERATE_PROMPT,
+        taskPrompt: buildGeneratePrompt(spec.relativePath),
         dataContext: spec.contextBuilder(index),
         token,
       });

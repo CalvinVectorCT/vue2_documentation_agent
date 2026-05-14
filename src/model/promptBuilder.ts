@@ -72,6 +72,22 @@ export function buildArchitectureContext(index: ProjectIndex): string {
   return JSON.stringify(sanitizeIndex(index), null, 2);
 }
 
+export function buildUserActionsContext(index: ProjectIndex): string {
+  return JSON.stringify(
+    {
+      scannedAt: index.scannedAt,
+      routes: index.routes,
+      views: index.views,
+      components: index.components,
+      vuexModules: index.vuexModules,
+      apiEndpoints: index.apiEndpoints,
+      auth: index.auth,
+    },
+    null,
+    2
+  );
+}
+
 // Strip file paths from the index when they add noise for high-level docs
 function sanitizeIndex(index: ProjectIndex): object {
   return {
