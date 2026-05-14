@@ -1,8 +1,6 @@
 import { VuexModuleRecord } from '../types/projectIndex';
 import { readMatchingFiles } from './readFiles';
 
-const GETTER_RE = /^\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\([^)]*state/gm;
-const ACTION_RE = /^\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(\s*\{?\s*(?:context|commit|dispatch|state|getters)/gm;
 const NAMESPACED_RE = /namespaced\s*:\s*true/;
 const MODULE_NAME_FROM_PATH_RE = /(?:store[\\/]modules[\\/]|modules[\\/])([a-zA-Z0-9_-]+)\./;
 
@@ -12,10 +10,15 @@ const MODULE_NAME_FROM_PATH_RE = /(?:store[\\/]modules[\\/]|modules[\\/])([a-zA-
  * Uses broad globs to handle non-standard folder layouts.
  */
 export async function scanVuex(unresolved: string[]): Promise<VuexModuleRecord[]> {
-  const files = await readMatchingFiles(
-    '{src/**/*.{js,ts},store/**/*.{js,ts}}',
-    unresolved
-  );
+  const [srcFiles, rootStoreFiles] = await Promise.all([
+    readMatchingFiles('src/**/*.{js,ts}', unresolved),
+    readMatchingFiles('store/**/*.{js,ts}', unresolved),
+  ]);
+
+  const files = new Map<string, string>([
+    ...srcFiles,
+    ...rootStoreFiles,
+  ]);
 
   const modules: VuexModuleRecord[] = [];
 
@@ -49,9 +52,9 @@ function extractModule(filePath: string, content: string): VuexModuleRecord | nu
   const namespaced = NAMESPACED_RE.test(content);
 
   const stateKeys = extractStateKeys(content);
-  const getters = extractIdentifiers(content, GETTER_RE, 1);
-  const mutations = extractMutationNames(content);
-  const actions = extractIdentifiers(content, ACTION_RE, 1);
+  const getters = extractObjectKeys(content, 'getters');
+  const mutations = extractObjectKeys(content, 'mutations');
+  const actions = extractObjectKeys(content, 'actions');
 
   return { name, namespaced, stateKeys, getters, mutations, actions, filePath };
 }
@@ -87,16 +90,14 @@ function extractIdentifiers(content: string, re: RegExp, group: number): string[
   return [...new Set(names)];
 }
 
-function extractMutationNames(content: string): string[] {
-  const mutationsBlockMatch = /mutations\s*:\s*\{([^}]+)\}/s.exec(content);
-  if (!mutationsBlockMatch) return [];
+function extractObjectKeys(content: string, objectName: 'actions' | 'getters' | 'mutations'): string[] {
+  const blockRe = new RegExp(`${objectName}\\s*:\\s*\\{([\\s\\S]*?)\\}`, 'm');
+  const blockMatch = blockRe.exec(content);
+  if (!blockMatch) return [];
 
-  const body = mutationsBlockMatch[1];
-  const names: string[] = [];
-  const re = /^\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(/gm;
-  let match: RegExpExecArray | null;
-  while ((match = re.exec(body)) !== null) {
-    names.push(match[1]);
-  }
-  return [...new Set(names)];
+  const body = blockMatch[1];
+  const methodStyle = extractIdentifiers(body, /^\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(/gm, 1);
+  const keyValueStyle = extractIdentifiers(body, /^\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*/gm, 1);
+
+  return [...new Set([...methodStyle, ...keyValueStyle])];
 }

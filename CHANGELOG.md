@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.8] — 2026-05-14
+
+### Fixed
+- Hardened route scanning for common Vue 2 layouts by replacing single complex router glob with explicit multi-path scanning (`src/router/index.js`, `src/router.js`, `router/index.js`, `router.js`)
+- Improved route redirect detection for object-form redirects (for example `redirect: { name: 'Layers' }`)
+- Improved Vuex module parsing to detect object-key style actions/getters/mutations (for example `Load: (context) => ...`) common in `src/store/modules/*.js`
+- Replaced combined Vuex file glob with explicit multi-path scanning to avoid missing store files in supported layouts
+
 ## [1.0.7] — 2026-05-14
 
 ### Fixed
