@@ -6,6 +6,7 @@ import { scanApiEndpoints } from './apiScanner';
 import { scanComponents } from './componentsScanner';
 import { scanAuth } from './authScanner';
 import { scanPlugins } from './pluginsScanner';
+import { scanEnvironment } from './environmentScanner';
 
 /**
  * Run all scanners against the active workspace and return a normalized ProjectIndex.
@@ -38,6 +39,9 @@ export async function scanWorkspace(
   stream.progress('Scanning plugins…');
   const plugins = token.isCancellationRequested ? [] : await scanPlugins(unresolved);
 
+  stream.progress('Scanning environment and config…');
+  const environment = token.isCancellationRequested ? [] : await scanEnvironment(unresolved);
+
   const index: ProjectIndex = {
     workspaceRoot,
     scannedAt: new Date().toISOString(),
@@ -48,12 +52,14 @@ export async function scanWorkspace(
     views,
     auth,
     plugins,
+    environment,
     unresolved,
   };
 
   stream.progress(
     `Scan complete — ${routes.length} routes, ${apiEndpoints.length} endpoints, ` +
-    `${components.length + views.length} components, ${vuexModules.length} Vuex modules`
+    `${components.length + views.length} components, ${vuexModules.length} Vuex modules, ` +
+    `${environment.length} env/config records`
   );
 
   return index;

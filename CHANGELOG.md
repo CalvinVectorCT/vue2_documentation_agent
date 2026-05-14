@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.6] — 2026-05-14
+
+### Fixed
+- Reduced placeholder output by changing runtime prompt behavior from TODO placeholders to concrete "not detected" statements when data is missing
+- Added environment/config scanning (`.env*`, `process.env`, and base URL hints) to improve README and API documentation quality
+- Enriched API endpoint extraction with request/response/auth/base URL hints for more concrete endpoint documentation
+
 ## [1.0.5] — 2026-05-14
 
 ### Fixed

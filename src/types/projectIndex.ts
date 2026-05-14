@@ -35,6 +35,10 @@ export interface ApiEndpointRecord {
   filePath: string;
   line: number;
   group?: string;
+  requestHint?: string;
+  responseHint?: string;
+  authHint?: 'Yes' | 'No' | 'Unknown';
+  baseUrlHint?: string;
 }
 
 // ─── Component types ─────────────────────────────────────────────────────────
@@ -71,6 +75,16 @@ export interface PluginRecord {
   filePath: string;
 }
 
+// ─── Environment / config types ──────────────────────────────────────────────
+
+export interface EnvironmentRecord {
+  key: string;
+  value?: string;
+  filePath: string;
+  line: number;
+  source: 'env' | 'config';
+}
+
 // ─── Project Index ────────────────────────────────────────────────────────────
 
 export interface ProjectIndex {
@@ -83,6 +97,7 @@ export interface ProjectIndex {
   views: ComponentRecord[];
   auth: AuthRecord[];
   plugins: PluginRecord[];
+  environment: EnvironmentRecord[];
   /** Files the scanners could not parse fully */
   unresolved: string[];
 }

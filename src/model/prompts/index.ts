@@ -5,7 +5,7 @@ You will receive structured project data extracted from source files. Use only t
 
 Mandatory rules:
 - Document only what exists in project data. Do not invent endpoints, routes, components, modules, or flows.
-- If details are missing, add: > TODO: [what must be filled manually]
+- If details are missing, write a concrete statement such as "Not detected in scanned project data" and continue documenting available facts.
 - Open each major technical section with a plain-English summary paragraph before tables or diagrams.
 - Keep names exact: route paths, component names, Vuex module names, and endpoint paths.
 - Use Mermaid in fenced code blocks for diagram files.
@@ -110,7 +110,7 @@ Target: docs/README.md
 	'README.md': `
 Target: README.md
 - Include title and one-paragraph project description.
-- Include tech stack badges section, prerequisites, getting started, and environment variables table (with TODO if unknown).
+- Include tech stack badges section, prerequisites, getting started, and environment variables table.
 - Add documentation index links to docs files.
 - Add architecture and authentication summary sections with links.
 - Add brief contributing and license sections.

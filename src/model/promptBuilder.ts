@@ -14,6 +14,7 @@ export function buildAuthContext(index: ProjectIndex): string {
     {
       scannedAt: index.scannedAt,
       auth: index.auth,
+      environment: index.environment,
       routes: index.routes.filter(
         (r) => r.guards?.length || r.meta?.['requiresAuth']
       ),
@@ -28,6 +29,7 @@ export function buildEndpointContext(index: ProjectIndex): string {
     {
       scannedAt: index.scannedAt,
       apiEndpoints: index.apiEndpoints,
+      environment: index.environment.filter((e) => /BASE_URL|API|URL/i.test(e.key)),
     },
     null,
     2
@@ -82,6 +84,7 @@ export function buildUserActionsContext(index: ProjectIndex): string {
       vuexModules: index.vuexModules,
       apiEndpoints: index.apiEndpoints,
       auth: index.auth,
+      environment: index.environment,
     },
     null,
     2
@@ -105,5 +108,6 @@ function sanitizeIndex(index: ProjectIndex): object {
     views: index.views.map(({ name, props, emits }) => ({ name, props, emits })),
     auth: index.auth.map(({ kind, description }) => ({ kind, description })),
     plugins: index.plugins.map(({ name }) => ({ name })),
+    environment: index.environment.map(({ key, value, source }) => ({ key, value, source })),
   };
 }

@@ -6,6 +6,7 @@ const AXIOS_CALL_RE = /(?:axios|api|http|client|service|request)\.(get|post|put|
 const TEMPLATE_LITERAL_RE = /(?:axios|api|http|client|service|request)\.(get|post|put|patch|delete|head)\s*\(\s*`([^`]+)`/gi;
 const FETCH_RE = /fetch\s*\(\s*['"`]([^'"`]+)['"`]\s*(?:,\s*\{[^}]*method\s*:\s*['"`](GET|POST|PUT|PATCH|DELETE)['"`])?/gi;
 const FUNCTION_CONTEXT_RE = /(?:async\s+)?(?:function\s+|(?:const|let|var)\s+)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?:=\s*(?:async\s+)?(?:\([^)]*\)\s*=>|\bfunction\b))?/;
+const BASE_URL_RE = /baseURL\s*:\s*(["'`][^"'`]+["'`]|process\.env\.[A-Z0-9_]+)/i;
 
 const HTTP_METHODS: Record<string, HttpMethod> = {
   get: 'GET', post: 'POST', put: 'PUT', patch: 'PATCH',
@@ -69,6 +70,8 @@ function extractEndpoints(
 ): void {
   const lines = content.split('\n');
 
+  const globalBaseUrl = BASE_URL_RE.exec(content)?.[1]?.replace(/["'`]/g, '');
+
   const addEndpoint = (method: HttpMethod, path: string, line: number) => {
     const key = `${method}:${path}`;
     if (seen.has(key)) return;
@@ -77,6 +80,12 @@ function extractEndpoints(
     // Try to find the enclosing function name
     const contextWindow = lines.slice(Math.max(0, line - 5), line).join('\n');
     const fnMatch = FUNCTION_CONTEXT_RE.exec(contextWindow);
+    const callLine = lines[line] ?? '';
+    const nearby = lines.slice(Math.max(0, line - 3), Math.min(lines.length, line + 4)).join('\n');
+
+    const requestHint = inferRequestHint(callLine, nearby, method);
+    const responseHint = inferResponseHint(nearby);
+    const authHint = inferAuthHint(nearby);
 
     out.push({
       method,
@@ -85,6 +94,10 @@ function extractEndpoints(
       filePath,
       line: line + 1,
       group: inferGroup(path),
+      requestHint,
+      responseHint,
+      authHint,
+      baseUrlHint: globalBaseUrl,
     });
   };
 
@@ -116,4 +129,30 @@ function extractEndpoints(
     const lineNum = content.substring(0, match.index).split('\n').length - 1;
     addEndpoint(method, match[1], lineNum);
   }
+}
+
+function inferRequestHint(callLine: string, nearby: string, method: HttpMethod): string | undefined {
+  if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') {
+    if (/params\s*:/.test(nearby)) return 'query params via params option';
+    return 'no request body detected';
+  }
+
+  if (/\{[^}]*\}/.test(callLine)) return 'inline object body detected';
+  if (/payload|body|data|formData|params/i.test(callLine) || /data\s*:/.test(nearby)) {
+    return 'request payload variable/object passed';
+  }
+  return undefined;
+}
+
+function inferResponseHint(nearby: string): string | undefined {
+  if (/response\.data|res\.data|\.data\b/.test(nearby)) return 'uses response.data';
+  if (/await\s+[^\n]*\.(json)\(\)/.test(nearby)) return 'uses response.json()';
+  if (/status\b/.test(nearby)) return 'checks response status';
+  return undefined;
+}
+
+function inferAuthHint(nearby: string): 'Yes' | 'No' | 'Unknown' {
+  if (/Authorization|Bearer|token|auth/i.test(nearby)) return 'Yes';
+  if (/public|noAuth|anonymous/i.test(nearby)) return 'No';
+  return 'Unknown';
 }
